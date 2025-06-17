@@ -33,6 +33,8 @@ class MainWindow(QMainWindow, gui.Ui_MainWindow):
         self.lineEdit_5.textChanged[str].connect(self.Milling)
         self.lineEdit_6.textChanged[str].connect(self.FieldSize)
         self.lineEdit_6.setText("7")
+        # Allow user to open a Gerber file and parse it.
+        self.actionOpen_Folder.triggered.connect(self.open_gerber_file)
 
 
     def ButtonClicked(self, Calcx):                                          # Функция по нажатию на кнопку
@@ -127,6 +129,35 @@ class MainWindow(QMainWindow, gui.Ui_MainWindow):
         except ValueError:
             return (print('Mistake, set numbers'))
         return self.Field
+
+    def open_gerber_file(self):
+        """Open a Gerber file and parse it using :mod:`pygerber`."""
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Gerber File",
+            "",
+            "Gerber Files (*.gbr *.grb *.GBR *.gerber);;All Files (*)",
+        )
+        if not path:
+            return
+
+        try:
+            from gerber_parser import parse_gerber
+
+            layer = parse_gerber(path)
+            QMessageBox.information(
+                self,
+                "Gerber parsed",
+                f"Successfully parsed {os.path.basename(path)}",
+            )
+            print(layer)
+        except Exception as exc:
+            QMessageBox.critical(
+                self,
+                "Parsing error",
+                f"Failed to parse {path}: {exc}",
+            )
+            print(exc)
 
 
     def Calc(self, CalcPCBSizeX):
